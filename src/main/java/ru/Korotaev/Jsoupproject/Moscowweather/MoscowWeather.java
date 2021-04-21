@@ -4,40 +4,28 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.Korotaev.Jsoupproject.Interfaces.GetPage;
 
 import java.io.IOException;
 import java.net.URL;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
-public class MoscowWeather {
-
-    private static Document getPage() throws IOException {
-        String url = "https://weather.com";
-                return Jsoup.parse(new URL(url), 3000);
+public class MoscowWeather implements GetPage {
+    @Override
+    public Document getPage(String url) throws IOException {
+        return Jsoup.parse(new URL(url) , 5000);
     }
-
-    private static final Pattern pattern = Pattern.compile("\\w{2}\\s\\d{2}");
-
-    private static String getDateFromString(String stringDate) throws Exception {
-        Matcher matcher = pattern.matcher(stringDate);
-        if (matcher.find()) {
-            return matcher.group();
-        }
-        throw new Exception("Can't extract date from string");
-    }
-
-    public static void main(String[] args) throws IOException {
-        Document page = getPage();
+    public static void main(String[] args) throws Exception {
+        MoscowWeather moscowWeather = new MoscowWeather();
+        Document page = moscowWeather.getPage("https://weather.com");
         Element tableWth = page.select("div[id=WxuDailyWeatherCard-main-bb1a17e7-dc20-421a-b1b8-c117308c6626]").first();
-        Elements weatherToday = tableWth.select("li[class=Column--column--2bRa6Column--active--FeXwd]");
-        Elements names = tableWth.select("li[class=Column--column--2bRa6]");
-        System.out.println(tableWth.text());
+        Elements weatherToday = tableWth.select("a[class=Column--innerWrapper--3K14X  Button--default--2yeqQ]");
+//        Elements names = tableWth.select("li[class=Column--column--2bRa6]");
+        Elements temperatureAndHumidity = weatherToday.select("div");
+        //
         for(Element weathToday : weatherToday){
-            System.out.println(weathToday.text());
-        }
-        for(Element name : names){
-            System.out.println(name.text());
+            String weathTodayString = weathToday.select("span[class=Ellipsis--ellipsis--lfjoB]").text();
+            System.out.println(weathTodayString);
+            System.out.println(temperatureAndHumidity.text());
         }
     }
 }

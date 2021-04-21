@@ -4,17 +4,18 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.Korotaev.Jsoupproject.Interfaces.GetPage;
 
 import java.io.IOException;
 import java.net.URL;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class PetersburgWeather {
+public class PetersburgWeather implements GetPage {
 
-    private static Document getPage() throws IOException {//потом можно вынести в отдельный метод. общий для всех классов
-        String url = "https://pogoda.spb.ru";
-        return Jsoup.parse(new URL(url) , 3000);
+    @Override
+    public Document getPage(String url) throws IOException {
+        return Jsoup.parse(new URL(url) , 5000);
     }
 
     //22.04 Суббота погода сегодня
@@ -61,7 +62,8 @@ public class PetersburgWeather {
         return iterationCount;
     }
     public static void main(String[] args) throws Exception {
-        Document page = getPage();
+        PetersburgWeather petersburgWeather = new PetersburgWeather();
+        Document page = petersburgWeather.getPage("https://pogoda.spb.ru");
         Element tableWth = page.select("table[class=wt]").first();
         Elements names = tableWth.select("tr[class=wth]");
         Elements values = tableWth.select("tr[valign=top]");

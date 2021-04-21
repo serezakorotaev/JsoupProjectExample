@@ -4,15 +4,17 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import ru.Korotaev.Jsoupproject.Interfaces.GetPage;
 
 import java.io.IOException;
 import java.net.URL;
 
-public class IzhevskWeather {
-    private static Document getPage() throws IOException {
-        String url = "https://rp5.ru/Погода_в_Ижевске";
-        return Jsoup.parse(new URL(url) , 5000);
-    }
+public class IzhevskWeather implements GetPage {
+
+@Override
+public Document getPage(String url) throws IOException {
+    return Jsoup.parse(new URL(url) , 5000);
+}
     private static int printHowCountOursInTodayDay(Elements areaTime ,int index){
         int iterator = 4;
         String cssQuery = "td[colspan=2]";
@@ -53,7 +55,8 @@ public class IzhevskWeather {
             return iterator;
     }
     public static void main(String[] args) throws IOException {
-        Document page = getPage();
+    IzhevskWeather izhevskWeather = new IzhevskWeather();
+        Document page = izhevskWeather.getPage("https://rp5.ru/Погода_в_Ижевске");
         Element forecastTable = page.select("table[class=forecastTable]").first();
         Elements days = forecastTable.select("tr[class=forecastDate]");
         Elements areaTime = forecastTable.select("tr");
@@ -71,4 +74,6 @@ public class IzhevskWeather {
             }
         }
     }
+
+
 }
