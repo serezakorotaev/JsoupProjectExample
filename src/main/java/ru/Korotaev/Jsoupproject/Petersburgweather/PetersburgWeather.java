@@ -12,6 +12,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PetersburgWeather implements GetPage {
+    private static final String allInformationFromTable = "table[class=wt]";
+    private static final String informationAboutAllDays = "tr[class=wth]";
+    private static final String informationAboutTemperature = "tr[valign=top]";
+    private static final String informationAboutDay = "th[id=dt]";
 
     @Override
     public Document getPage(String url) throws IOException {
@@ -29,50 +33,56 @@ public class PetersburgWeather implements GetPage {
         }
         throw new Exception("Can't extract date from string");
     }
-    private static int printForValues(Elements values,int index){
+
+    static int checkingWhatTimeIsIt(Elements values , int iterationCount) {
+        Element valueLn = values.get(3);
+        boolean isMorning = valueLn.text().contains("Утро");
+        boolean isDay = valueLn.text().contains("День");
+        boolean isEvening = valueLn.text().contains("Вечер");
+        boolean isNight = valueLn.text().contains("Ночь");
+
+        if (isMorning) {
+            iterationCount = 3;
+        } else if (isDay) {
+            iterationCount = 2;
+        } else if (isEvening) {
+            iterationCount = 1;
+        } else if (isNight) {
+            iterationCount = 0;
+        }
+        return iterationCount;
+    }
+
+    private static int printForValues(Elements values , int index) {
         int iterationCount = 4;
 
-        if (index ==0) {
-            Element valueLn = values.get(3);
-            boolean isMorning = valueLn.text().contains("Утро");
-            boolean isDay = valueLn.text().contains("День");
-            boolean isEvening = valueLn.text().contains("Вечер");
-            boolean isNight = valueLn.text().contains("Ночь");
-
-            if (isMorning) {
-                iterationCount = 3;
-            } else if (isDay) {
-                iterationCount = 2;
-            } else if (isEvening) {
-                iterationCount = 1;
-            } else if (isNight) {
-                iterationCount = 0;
-            }
+        if (index == 0) {
+            iterationCount = checkingWhatTimeIsIt(values , iterationCount);
             //для каждого случай (утро, день, вечер, ночь надо сделать собственный цикл. вохможно через switch для подсчета индекса и итератора
         }
-
-            for (int i = 0; i < iterationCount; i++) {
-                Element valueLine = values.get(index + i);
-                for (Element td : valueLine.select("td")) {
-                    System.out.print(td.text() + "       ");
-                }
-                System.out.println();
+        for (int i = 0; i < iterationCount; i++) {
+            Element valueLine = values.get(index + i);
+            for (Element td : valueLine.select("td")) {
+                System.out.print(td.text() + "       ");
             }
+            System.out.println();
+        }
 //        }
         return iterationCount;
     }
+
     public static void main(String[] args) throws Exception {
         PetersburgWeather petersburgWeather = new PetersburgWeather();
         Document page = petersburgWeather.getPage("https://pogoda.spb.ru");
-        Element tableWth = page.select("table[class=wt]").first();
-        Elements names = tableWth.select("tr[class=wth]");
-        Elements values = tableWth.select("tr[valign=top]");
+        Element tableWth = page.select(allInformationFromTable).first();
+        Elements names = tableWth.select(informationAboutAllDays);
+        Elements values = tableWth.select(informationAboutTemperature);
         int index = 0;
         for (Element name : names) {
-            String dateString = name.select("th[id=dt]").text();//для нахождения нужной информации используем регулярные выражения
+            String dateString = name.select(informationAboutDay).text();//для нахождения нужной информации используем регулярные выражения
             String date = getDateFromString(dateString);
             System.out.println(date + "    Явление   Температура   Давл    Влажность   Ветер");
-            int iterationCount = printForValues(values,index);
+            int iterationCount = printForValues(values , index);
             index = index + iterationCount;
         }
 
